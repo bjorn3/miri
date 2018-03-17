@@ -6,7 +6,6 @@ use rustc::ty::layout::LayoutOf;
 use rustc::ty::subst::{Substs, Subst};
 use rustc::traits;
 use rustc::infer::InferCtxt;
-use rustc::traits::Reveal;
 use rustc::middle::region;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_mir::interpret::HasMemory;
@@ -108,7 +107,7 @@ pub(crate) trait EvalContextExt<'tcx> {
     ) -> EvalResult<'tcx>;
 }
 
-impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'tcx>> {
+impl<'a, 'mir, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'mir, 'tcx, super::Evaluator<'tcx>> {
     fn abstract_place_projection(&self, proj: &mir::PlaceProjection<'tcx>) -> EvalResult<'tcx, AbsPlaceProjection<'tcx>> {
         use self::mir::ProjectionElem::*;
 
@@ -117,7 +116,7 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
             Field(f, _) => Field(f, ()),
             Index(v) => {
                 let value = self.frame().get_local(v)?;
-                let ty = self.tcx.types.usize;
+                let ty = self.tcx.tcx.types.usize;
                 let n = self.value_to_primval(ValTy { value, ty })?.to_u64()?;
                 Index(n)
             },
@@ -152,7 +151,7 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
         // because other crates may have been compiled with mir-emit-validate > 0.  Ignore those
         // commands.  This makes mir-emit-validate also a flag to control whether miri will do
         // validation or not.
-        if self.tcx.sess.opts.debugging_opts.mir_emit_validate == 0 {
+        if self.tcx.tcx.sess.opts.debugging_opts.mir_emit_validate == 0 {
             return Ok(());
         }
         debug_assert!(self.memory.cur_frame == self.cur_frame());
@@ -187,7 +186,7 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
 
         // We need to monomorphize ty *without* erasing lifetimes
         trace!("validation_op1: {:?}", operand.ty.sty);
-        let ty = operand.ty.subst(self.tcx, self.substs());
+        let ty = operand.ty.subst(self.tcx.tcx, self.substs());
         trace!("validation_op2: {:?}", operand.ty.sty);
         let place = self.eval_place(&operand.place)?;
         let abs_place = self.abstract_place(&operand.place)?;
@@ -250,7 +249,7 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
     }
 
     fn normalize_type_unerased(&self, ty: Ty<'tcx>) -> Ty<'tcx> {
-        return normalize_associated_type(self.tcx, &ty);
+        return normalize_associated_type(self.tcx.tcx, &ty);
 
         use syntax::codemap::{Span, DUMMY_SP};
 
@@ -356,7 +355,7 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
         where
             T: MyTransNormalize<'tcx>,
         {
-            let param_env = ty::ParamEnv::empty(Reveal::All);
+            let param_env = ty::ParamEnv::reveal_all();
 
             if !value.has_projections() {
                 return value.clone();
@@ -383,7 +382,7 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
             }
             _ => {}
         }
-        let tcx = self.tcx;
+        let tcx = self.tcx.tcx;
         Ok(match layout.ty.sty {
             ty::TyBool |
             ty::TyChar |
@@ -438,7 +437,7 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
                 substs.field_tys(def_id, tcx).nth(i).unwrap()
             }
 
-            ty::TyTuple(tys, _) => tys[i],
+            ty::TyTuple(tys) => tys[i],
 
             // SIMD vector types.
             ty::TyAdt(def, ..) if def.repr.simd() => {
@@ -761,7 +760,7 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
                     Ok(())
                 }
                 TyAdt(adt, _) => {
-                    if Some(adt.did) == self.tcx.lang_items().unsafe_cell_type() &&
+                    if Some(adt.did) == self.tcx.tcx.lang_items().unsafe_cell_type() &&
                         query.mutbl == MutImmutable
                     {
                         // No locks for shared unsafe cells.  Also no other validation, the only field is private anyway.
@@ -773,8 +772,8 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
                             let discr = self.read_discriminant_value(query.place.1, query.ty)?;
 
                             // Get variant index for discriminant
-                            let variant_idx = adt.discriminants(self.tcx).position(|variant_discr| {
-                                variant_discr.to_u128_unchecked() == discr
+                            let variant_idx = adt.discriminants(self.tcx.tcx).position(|variant_discr| {
+                                variant_discr.val == discr
                             });
                             let variant_idx = match variant_idx {
                                 Some(val) => val,

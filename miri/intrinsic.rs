@@ -19,7 +19,7 @@ pub trait EvalContextExt<'tcx> {
     ) -> EvalResult<'tcx>;
 }
 
-impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'tcx>> {
+impl<'a, 'mir, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'mir, 'tcx, super::Evaluator<'tcx>> {
     fn call_intrinsic(
         &mut self,
         instance: ty::Instance<'tcx>,
@@ -381,8 +381,8 @@ impl<'a, 'tcx> EvalContextExt<'tcx> for EvalContext<'a, 'tcx, super::Evaluator<'
 
             "needs_drop" => {
                 let ty = substs.type_at(0);
-                let env = ty::ParamEnv::empty(Reveal::All);
-                let needs_drop = ty.needs_drop(self.tcx, env);
+                let env = ty::ParamEnv::reveal_all();
+                let needs_drop = ty.needs_drop(self.tcx.tcx, env);
                 self.write_primval(
                     dest,
                     PrimVal::from_bool(needs_drop),
