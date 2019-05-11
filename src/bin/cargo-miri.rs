@@ -246,7 +246,7 @@ path = "lib.rs"
     let mut command = Command::new("xargo");
     command.arg("build").arg("-q")
         .current_dir(&dir)
-        .env("RUSTFLAGS", miri::miri_default_args().join(" "))
+        .env("RUSTFLAGS", miri::miri_default_args().join(" ") + " -lframework=Security")
         .env("XARGO_HOME", dir.to_str().unwrap());
     if let Some(ref target) = target {
         command.arg("--target").arg(&target);

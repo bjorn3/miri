@@ -218,20 +218,29 @@ pub fn eval_main<'a, 'tcx: 'a>(
     let mut ecx = match create_ecx(tcx, main_id, config) {
         Ok(ecx) => ecx,
         Err(mut err) => {
+            println!("err");
+            println!("{:?}", err);
             err.print_backtrace();
             panic!("Miri initialziation error: {}", err.kind)
         }
     };
 
+    println!("post create_ecx");
+
     // Perform the main execution.
     let res: EvalResult = (|| {
         ecx.run()?;
+        println!("pre run tls dtors");
         ecx.run_tls_dtors()
     })();
+
+    println!("post run");
 
     // Process the result.
     match res {
         Ok(()) => {
+            println!("eval succeed");
+
             let leaks = ecx.memory().leak_report();
             // Disable the leak test on some platforms where we do not
             // correctly implement TLS destructors.
@@ -240,8 +249,12 @@ pub fn eval_main<'a, 'tcx: 'a>(
             if !ignore_leaks && leaks != 0 {
                 tcx.sess.err("the evaluated program leaked memory");
             }
+            println!("reported leaks");
         }
         Err(mut e) => {
+            println!("eval err");
+            println!("{:?}", e);
+
             // Special treatment for some error kinds
             let msg = match e.kind {
                 InterpError::Exit(code) => std::process::exit(code),

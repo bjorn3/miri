@@ -6,7 +6,7 @@ description = "An experimental interpreter for Rust MIR."
 license = "MIT/Apache-2.0"
 name = "miri"
 repository = "https://github.com/rust-lang/miri"
-version = "0.1.0"
+version = "0.2.0"
 build = "build.rs"
 default-run = "miri"
 edition = "2018"
@@ -46,6 +46,35 @@ shell-escape = "0.1.4"
 rustc-workspace-hack = "1.0.0"
 hex = "0.3.2"
 rand = "0.6"
+
+
+
+
+syntax = { path = "../rust_fork/src/libsyntax" }
+syntax_ext = { path = "../rust_fork/src/libsyntax_ext" }
+syntax_pos = { path = "../rust_fork/src/libsyntax_pos" }
+serialize = { path = "../rust_fork/src/libserialize" }
+rustc = { path = "../rust_fork/src/librustc" }
+rustc_allocator = { path = "../rust_fork/src/librustc_allocator" }
+rustc_borrowck = { path = "../rust_fork/src/librustc_borrowck" }
+rustc_incremental = { path = "../rust_fork/src/librustc_incremental" }
+rustc_traits = { path = "../rust_fork/src/librustc_traits" }
+rustc_data_structures = { path = "../rust_fork/src/librustc_data_structures" }
+rustc_codegen_ssa = { path = "../rust_fork/src/librustc_codegen_ssa" }
+rustc_codegen_utils = { path = "../rust_fork/src/librustc_codegen_utils" }
+rustc_metadata = { path = "../rust_fork/src/librustc_metadata" }
+rustc_mir = { path = "../rust_fork/src/librustc_mir" }
+rustc_passes = { path = "../rust_fork/src/librustc_passes" }
+rustc_typeck = { path = "../rust_fork/src/librustc_typeck" }
+rustc_lint = { path = "../rust_fork/src/librustc_lint" }
+rustc_errors = { path = "../rust_fork/src/librustc_errors" }
+rustc_plugin = { path = "../rust_fork/src/librustc_plugin" }
+rustc_privacy = { path = "../rust_fork/src/librustc_privacy" }
+rustc_resolve = { path = "../rust_fork/src/librustc_resolve" }
+rustc_fs_util = { path = "../rust_fork/src/librustc_fs_util" }
+rustc_target = { path = "../rust_fork/src/librustc_target" }
+
+
 
 [build-dependencies]
 vergen = "3"
