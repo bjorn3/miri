@@ -50,6 +50,32 @@ rustc-workspace-hack = "1.0.0"
 # between "cargo build" and "cargo intall".
 num-traits = "*"
 
+
+
+
+syntax = { path = "../../libsyntax" }
+syntax_ext = { path = "../../libsyntax_ext" }
+syntax_pos = { path = "../../libsyntax_pos" }
+serialize = { path = "../../libserialize" }
+rustc = { path = "../../librustc" }
+rustc_incremental = { path = "../../librustc_incremental" }
+rustc_traits = { path = "../../librustc_traits" }
+rustc_data_structures = { path = "../../librustc_data_structures" }
+rustc_codegen_ssa = { path = "../../librustc_codegen_ssa" }
+rustc_codegen_utils = { path = "../../librustc_codegen_utils" }
+rustc_metadata = { path = "../../librustc_metadata" }
+rustc_mir = { path = "../../librustc_mir" }
+rustc_passes = { path = "../../librustc_passes" }
+rustc_typeck = { path = "../../librustc_typeck" }
+rustc_lint = { path = "../../librustc_lint" }
+rustc_errors = { path = "../../librustc_errors" }
+rustc_privacy = { path = "../../librustc_privacy" }
+rustc_resolve = { path = "../../librustc_resolve" }
+rustc_fs_util = { path = "../../librustc_fs_util" }
+rustc_target = { path = "../../librustc_target" }
+
+
+
 [build-dependencies]
 vergen = "3"
 
